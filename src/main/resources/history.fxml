@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="378.0" prefWidth="275.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.work.task.HistoryController">
+   <children>
+      <TextArea fx:id="history" editable="false" prefHeight="378.0" prefWidth="275.0">
+         <font>
+            <Font size="20.0" />
+         </font>
+      </TextArea>
+   </children>
+</AnchorPane>

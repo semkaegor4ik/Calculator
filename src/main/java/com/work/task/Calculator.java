@@ -19,9 +19,9 @@ public class Calculator {
 
     private List<Double>  numbers = new ArrayList<>();
 
-    private final List<String> history = new ArrayList<>();
+    private final History history = new History();
 
-    private final UIController controller;
+    private static Calculator calculator;
 
     static {
         COMANDS.put('+', Sum.class);
@@ -31,8 +31,14 @@ public class Calculator {
         COMANDS.put('^', Power.class);
     }
 
-    public Calculator(UIController controller) {
-        this.controller = controller;
+    private Calculator() {
+        history.createTable();
+    }
+
+    public static Calculator getInstance(){
+        if(calculator == null)
+            calculator = new Calculator();
+        return  calculator;
     }
 
     private void parseString(){
@@ -53,8 +59,10 @@ public class Calculator {
                     throw new IllegalArgumentException();
                 }
             }
-            else if(Character.isDigit(characters[i])){
+            else if(Character.isDigit(characters[i])
+                    ||((i==0 || (COMANDS.containsKey(characters[i-1]) && (characters[i-1]!='(' || characters[i-1]!=')')) && characters[i]=='-'))){
                 StringBuilder number = new StringBuilder();
+                double num = 0;
                 number.append(characters[i]);
                 if(i < characters.length - 1)
                     i++;
@@ -67,7 +75,13 @@ public class Calculator {
                 }
                 if(!Character.isDigit(characters[i]))
                     i--;
-                numbers.add(Double.parseDouble(String.valueOf(number)));
+                if(number.charAt(0)=='-'){
+                    number.deleteCharAt(0);
+                    num = -Double.parseDouble(String.valueOf(number));
+                }
+                else
+                    num = Double.parseDouble(String.valueOf(number));
+                numbers.add(num);
             }
             else if(COMANDS.containsKey(characters[i])){
                 try {
@@ -81,7 +95,8 @@ public class Calculator {
             else
                 throw new IllegalArgumentException();                   //
         }
-        if(!brackets.empty()){
+        if(!brackets.empty()
+                || numbers.size()-1 != functions.size()){
             throw new IllegalArgumentException();
         }
     }
@@ -102,38 +117,41 @@ public class Calculator {
             numbers.set(functions.indexOf(function.get()), result);
             functions.remove(function.get());
         }
+
+        return result;
+    }
+
+    public List<String> getHistory(){
+        return history.getHistory();
+    }
+
+    public double start(){
+        parseString();
+        double result = calculate();
+        String resultStr = String.valueOf(formula.append("="+result));
+        history.addFormula(resultStr);
         formula = new StringBuilder();
         numbers = new ArrayList<>();
         functions = new ArrayList<>();
         return result;
     }
 
-    public double start(){
-        parseString();
-        return calculate();
-    }
-
-    public void addSymbol(char symbol){
+    public void addSymbol(char symbol) throws IllegalArgumentException{
         if(formula.length()!=0
-            &&COMANDS.containsKey(formula.charAt(formula.length()-1))
-                && COMANDS.containsKey(symbol))
-            throw new IllegalArgumentException();                   //
-        else if(formula.length()!=0
-                && formula.charAt(formula.length()-1)=='('
-                && ((symbol == ')')
-                || COMANDS.containsKey(symbol)))
+                && (((COMANDS.containsKey(formula.charAt(formula.length()-1))
+                && COMANDS.containsKey(symbol)) && symbol!='-')
+                ||(formula.charAt(formula.length()-1)=='('
+                && (symbol == ')'))
+                || (symbol=='.'
+                && Character.isDigit(formula.charAt(formula.length()-1))))){
             throw new IllegalArgumentException();
-        else if(formula.length()!=0
-                &&symbol=='.'
-                && Character.isDigit(formula.charAt(formula.length()-1)))
+        }
+        else if((formula.length()==0) && (COMANDS.containsKey(symbol) && symbol!='-'))
             throw new IllegalArgumentException();
-
         formula.append(symbol);
     }
 
-    public static void main(String[] args) {/*
-        Calculator calculator = new Calculator();
-        calculator.setFormula(new StringBuilder("2+4*(6^2-5)"));
-        calculator.start();*/
+    public void deleteFormula(){
+        formula = new StringBuilder();
     }
 }
