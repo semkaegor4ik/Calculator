@@ -10,10 +10,10 @@ public class CalculatorApp extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-        Parent root = FXMLLoader.load(getClass().getClassLoader().getResource("calculator.fxml"));
+        Parent root = FXMLLoader.load(getClass().getClassLoader().getResource("scene/calculator.fxml"));
         primaryStage.setResizable(false);
         primaryStage.setTitle("Calculator");
-        primaryStage.setScene(new Scene(root, 275, 378));
+        primaryStage.setScene(new Scene(root));
         primaryStage.show();
     }
 

@@ -1,7 +1,8 @@
 package com.work.task;
 
+import com.work.task.database.History;
 import com.work.task.functions.*;
-import lombok.Data;
+import lombok.Getter;
 
 
 import java.lang.reflect.InvocationTargetException;
@@ -9,10 +10,9 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-@Data
 public class Calculator {
     private static final Map<Character, Class<? extends Function>> COMANDS = new HashMap<>();
-
+    @Getter
     private StringBuilder formula = new StringBuilder();
 
     private List<Function> functions = new ArrayList<>();
@@ -22,6 +22,8 @@ public class Calculator {
     private final History history = new History();
 
     private static Calculator calculator;
+
+    private static final int MAX_PRIORITY = 3;
 
     static {
         COMANDS.put('+', Sum.class);
@@ -47,11 +49,11 @@ public class Calculator {
         char[] characters = formula.toString().toCharArray();
         for (int i = 0; i < characters.length ; i++) {
             if(characters[i]=='(') {
-                currentPriority += 3;
+                currentPriority += MAX_PRIORITY;
                 brackets.push('(');
             }
             else if(characters[i]==')') {
-                currentPriority -= 3;
+                currentPriority -= MAX_PRIORITY;
                 try{
                 brackets.pop();
                 }
@@ -60,16 +62,27 @@ public class Calculator {
                 }
             }
             else if(Character.isDigit(characters[i])
-                    ||((i==0 || (COMANDS.containsKey(characters[i-1]) && (characters[i-1]!='(' || characters[i-1]!=')')) && characters[i]=='-'))){
+                    || ((i==0 ||
+                    (COMANDS.containsKey(characters[i-1]) || characters[i-1]=='(')
+                            && characters[i]=='-'))){
                 StringBuilder number = new StringBuilder();
                 double num = 0;
+                boolean isLast = true;
                 number.append(characters[i]);
                 if(i < characters.length - 1)
                     i++;
                 while ((Character.isDigit(characters[i])
                         || characters[i]=='.')
-                        && i < characters.length - 1) {
+                        && (i < characters.length - 1 ||
+                        (isLast &&
+                                (i!=0 && (Character.isDigit(characters[i-1])
+                                        ||(characters[i-1]=='-'
+                                        &&(i==1||(COMANDS.containsKey(characters[i-2])
+                                        || characters[i-2]=='(' || characters[i-2]==')')))
+                                        ||characters[i-1]=='.'))))){
                     number.append(characters[i]);
+                    if(i == characters.length - 1)
+                        isLast = false;
                     if(i < characters.length - 1)
                         i++;
                 }
@@ -96,7 +109,7 @@ public class Calculator {
                 throw new IllegalArgumentException();                   //
         }
         if(!brackets.empty()
-                || numbers.size()-1 != functions.size()){
+                || (numbers.size()-1 != functions.size() && numbers.size()>1)){
             throw new IllegalArgumentException();
         }
     }
@@ -118,22 +131,30 @@ public class Calculator {
             functions.remove(function.get());
         }
 
-        return result;
+        return numbers.get(0);
     }
 
-    public List<String> getHistory(){
+    public List<String> getLastOperations(){
         return history.getHistory();
     }
 
+    public void clearHistory(){
+        history.clearHistory();
+    }
+
     public double start(){
-        parseString();
-        double result = calculate();
-        String resultStr = String.valueOf(formula.append("="+result));
-        history.addFormula(resultStr);
-        formula = new StringBuilder();
-        numbers = new ArrayList<>();
-        functions = new ArrayList<>();
-        return result;
+        if (formula.length()!=0) {
+            parseString();
+            double result = calculate();
+            String resultStr = String.valueOf(formula.append("=" + result));
+            history.addFormula(resultStr);
+            formula = new StringBuilder();
+            numbers = new ArrayList<>();
+            functions = new ArrayList<>();
+            return result;
+        }
+        else
+            return 0;
     }
 
     public void addSymbol(char symbol) throws IllegalArgumentException{
@@ -143,10 +164,12 @@ public class Calculator {
                 ||(formula.charAt(formula.length()-1)=='('
                 && (symbol == ')'))
                 || (symbol=='.'
-                && Character.isDigit(formula.charAt(formula.length()-1))))){
+                && !Character.isDigit(formula.charAt(formula.length()-1)))
+                || symbol=='('
+                && !COMANDS.containsKey(formula.charAt(formula.length()-1)))){
             throw new IllegalArgumentException();
         }
-        else if((formula.length()==0) && (COMANDS.containsKey(symbol) && symbol!='-'))
+        else if((formula.length()==0) && ((COMANDS.containsKey(symbol) || symbol==')'||symbol=='.') && symbol!='-'))
             throw new IllegalArgumentException();
         formula.append(symbol);
     }

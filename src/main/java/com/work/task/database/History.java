@@ -1,4 +1,4 @@
-package com.work.task;
+package com.work.task.database;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -26,7 +26,7 @@ public class History {
         try (Connection con = DBConection.connect()) {
             Statement statement = con.createStatement();
             String sqlCommand = "WITH t AS (" +
-                    " SELECT * FROM history ORDER BY createDate DESC LIMIT 20)" +
+                    " SELECT * FROM history ORDER BY createDate DESC LIMIT 10)" +
                     " SELECT * FROM t ORDER BY createDate ASC";
             ResultSet resultSet = statement.executeQuery(sqlCommand);
             while (resultSet.next()) {
@@ -44,14 +44,20 @@ public class History {
         try (Connection con = DBConection.connect()) {
             Statement statement = con.createStatement();
             String sqlCommand = "INSERT INTO history " +
-                    "VALUES ('"+formula+"', '"+LocalDateTime.now().withNano(0).withSecond(0)+"')";
+                    "VALUES ('"+formula+"', '"+LocalDateTime.now().withNano(0)+"')";
             statement.executeUpdate(sqlCommand);
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
     }
 
-
-
-
+    public void clearHistory(){
+        try (Connection con = DBConection.connect()) {
+            Statement statement = con.createStatement();
+            String sqlCommand = "TRUNCATE history";
+            statement.executeUpdate(sqlCommand);
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
 }

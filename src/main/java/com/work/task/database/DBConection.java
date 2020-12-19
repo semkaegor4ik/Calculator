@@ -1,4 +1,4 @@
-package com.work.task;
+package com.work.task.database;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -15,7 +15,7 @@ public class DBConection {
     private static final String PASSWORD;
 
     static{
-        try(FileInputStream fis = new FileInputStream("src/main/resources/config.properties")){
+        try(FileInputStream fis = new FileInputStream("src/main/resources/db.properties")){
             PROPERTIES.load(new InputStreamReader(fis, Charset.forName("UTF-8")));
         } catch (IOException e) {
             e.printStackTrace();

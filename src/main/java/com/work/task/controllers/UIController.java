@@ -1,17 +1,16 @@
-package com.work.task;
+package com.work.task.controllers;
 
+import com.work.task.Calculator;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class UIController {
@@ -117,7 +116,7 @@ public class UIController {
             catch (IllegalArgumentException ex){
                 textField.setText("ошибка ввода");
                 calculator.deleteFormula();
-                ex.printStackTrace();
+                //ex.printStackTrace();
             }
         }));
 
@@ -129,14 +128,14 @@ public class UIController {
             catch (IllegalArgumentException ex){
                 textField.setText("ошибка ввода");
                 calculator.deleteFormula();
-                ex.printStackTrace();
+                //ex.printStackTrace();
             }
 
         });
 
         historyButton.setOnAction(event -> {
             FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(getClass().getClassLoader().getResource("history.fxml"));
+            loader.setLocation(getClass().getClassLoader().getResource("scene/history.fxml"));
             try {
                 loader.load();
             } catch (IOException e) {
@@ -145,7 +144,9 @@ public class UIController {
 
             Parent root = loader.getRoot();
             Stage stage = new Stage();
+            stage.setTitle("History");
             stage.setScene(new Scene(root));
+            stage.setResizable(false);
             stage.showAndWait();
         });
 
